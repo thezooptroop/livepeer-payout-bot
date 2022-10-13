@@ -123,7 +123,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: "POST",
         body: JSON.stringify({
-          username: "Payout Alert Bot",
+          username: "Golden Ticket Mofo's",
           avatar_url:
             "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
           embeds: [
