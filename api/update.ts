@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 
 const fetch = require("@vercel/fetch")();
 
+const bad_actors = ['0x525419ff5707190389bfb5c87c375d710f5fcb0e','0xdb22609515433e664e28067c81704d8266098986']
+
 const pricePerPixel = 0.0000000000000012; // (1200 wei)
 
 // the # of pixels in a minute of 240p30fps, 360p30fps, 480p30fps, 720p30fps transcoded renditions.
@@ -213,7 +215,7 @@ export const getMessageDataForEvent = async (
     event.transaction.id
   } `;
 
-  const discordDescription = `[**${name}**](https://explorer.livepeer.org/accounts/${
+  let discordDescription = `[**${name}**](https://explorer.livepeer.org/accounts/${
     event.recipient.id
   }/campaign) just earned **${parseFloat(event.faceValue).toFixed(
     4
@@ -222,6 +224,9 @@ export const getMessageDataForEvent = async (
   )})** transcoding approximately ${Math.round(
     minutes
   ).toLocaleString()} minutes of video.`;
+
+  if(bad_actors.includes(event.recipient.id))
+  discordDescription= discordDescription+ '🖕🏾🤡';
 
   return { twitterStatus, minutes, image, name, discordDescription };
 };
