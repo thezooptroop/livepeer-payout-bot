@@ -67,28 +67,28 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
   const { timestamp } = await db.collection("payouts").findOne();
   const query = gql`
-      query WinningTickets($lastCheckTime: Int!) {
-        winningTicketRedeemedEvents(
-          where: {timestamp_gt: $lastCheckTime}
-          first: 100
-          orderDirection: desc
-          orderBy: timestamp
-        ) {
-          timestamp
-          faceValue
-          faceValueUSD
-          recipient {
-            id
-          }
-          transaction {
-            id
-          }
+    query WinningTickets($lastCheckTime: Int!) {
+      winningTicketRedeemedEvents(
+        where: { timestamp_gt: $lastCheckTime }
+        first: 100
+        orderDirection: desc
+        orderBy: timestamp
+      ) {
+        timestamp
+        faceValue
+        faceValueUSD
+        recipient {
+          id
+        }
+        transaction {
+          id
         }
       }
+    }
   `;
 
   const variables = {
-    "lastCheckTime": timestamp 
+    lastCheckTime: timestamp,
   };
 
   const { winningTicketRedeemedEvents } = await request(
@@ -97,52 +97,54 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     variables
   );
   // Update last event time
-    if(winningTicketRedeemedEvents && winningTicketRedeemedEvents.length== 0){
-      res.status(200).send("None");
+  if (winningTicketRedeemedEvents && winningTicketRedeemedEvents.length == 0) {
+    res.status(200).send("None");
+  } else {
+    if (winningTicketRedeemedEvents[0].timestamp > timestamp) {
+      await db
+        .collection("payouts")
+        .replaceOne(
+          {},
+          { timestamp: winningTicketRedeemedEvents[0].timestamp }
+        );
     }
-   else{
-      if (winningTicketRedeemedEvents[0].timestamp > timestamp) {
-        await db
-          .collection("payouts")
-          .replaceOne({}, { timestamp: winningTicketRedeemedEvents[0].timestamp });
-      }
-      
-      // Notify once for each new winning ticket
-      for (const newTicket of winningTicketRedeemedEvents) {
-        const { twitterStatus, discordDescription, image } =
-          await getMessageDataForEvent(newTicket);
 
-        // await client.post("statuses/update", {
-        //   status: twitterStatus,
-        // });
+    // Notify once for each new winning ticket
+    for (const newTicket of winningTicketRedeemedEvents) {
+      const { twitterStatus, discordDescription, image } =
+        await getMessageDataForEvent(newTicket);
 
-        await fetch(process.env.DISCORD_WEBHOOK_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            username: "Payout Alert Bot",
-            avatar_url:
-              "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
-            embeds: [
-              {
-                color: 60296,
-                title: "Orchestrator Payout",
-                description: discordDescription,
-                timestamp: new Date(newTicket.timestamp * 1000).toISOString(),
-                url: `https://arbiscan.io/tx/${newTicket.transaction.id}`,
-                ...(image && {
-                  thumbnail: {
-                    url: image,
-                  },
-                }),
-              },
-            ],
-          }),
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+      // await client.post("statuses/update", {
+      //   status: twitterStatus,
+      // });
 
-      res.status(200).send("Success");
-   }
+      await fetch(process.env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          username: "Payout Alert Bot",
+          avatar_url:
+            "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
+          embeds: [
+            {
+              color: 60296,
+              title: "Orchestrator Payout",
+              description: discordDescription,
+              timestamp: new Date(newTicket.timestamp * 1000).toISOString(),
+              url: `https://arbiscan.io/tx/${newTicket.transaction.id}`,
+              ...(image && {
+                thumbnail: {
+                  url: image,
+                },
+              }),
+            },
+          ],
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    res.status(200).send("Success");
+  }
 };
 
 export type Recipient = {
