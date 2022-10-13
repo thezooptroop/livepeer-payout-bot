@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { request, gql } from "graphql-request";
-import Twitter from "twitter";
+//import Twitter from "twitter";
 import { ethers } from "ethers";
 
 const fetch = require("@vercel/fetch")();
@@ -24,12 +24,12 @@ export const getTotalFeeDerivedMinutes = ({
   return feeDerivedMinutes;
 };
 
-const client = new Twitter({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
+// const client = new Twitter({
+//   consumer_key: process.env.TWITTER_CONSUMER_KEY,
+//   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+//   access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+//   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+// });
 
 // Create cached connection variable
 let cachedDb = null;
@@ -62,36 +62,42 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       errors: ["Unauthorized"],
     });
   }
-  const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.eutpy.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
+  const uri = `${process.env.MONGO_DB_URL}`;
   const db = await connectToDatabase(uri);
 
   const query = gql`
     {
-      winningTicketRedeemedEvents(
-        first: 20
-        orderDirection: desc
-        orderBy: timestamp
-      ) {
-        timestamp
-        faceValue
-        faceValueUSD
-        recipient {
-          id
-        }
-        transaction {
-          id
+      query WinningTickets($lastCheckTime: Int!) {
+        winningTicketRedeemedEvents(
+          where: {timestamp_gt: $lastCheckTime}
+          first: 100
+          orderDirection: desc
+          orderBy: timestamp
+        ) {
+          timestamp
+          faceValue
+          faceValueUSD
+          recipient {
+            id
+          }
+          transaction {
+            id
+          }
         }
       }
     }
   `;
 
-  const { winningTicketRedeemedEvents } = await request(
-    "https://api.thegraph.com/subgraphs/name/livepeer/arbitrum-one",
-    query
-  );
 
   const { timestamp } = await db.collection("payouts").findOne();
 
+  const { winningTicketRedeemedEvents } = await request(
+    `${process.env.LP_SUBGRAPH_URL}`,
+    query,
+    {
+      "lastCheckTime": timestamp
+    }
+  );
   // Update last event time
   if (winningTicketRedeemedEvents[0].timestamp > timestamp) {
     await db
@@ -99,24 +105,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       .replaceOne({}, { timestamp: winningTicketRedeemedEvents[0].timestamp });
   }
 
-  // Build a queue of new winning tickets
-  let ticketQueue = [];
-  for (const thisTicket of winningTicketRedeemedEvents) {
-    if (thisTicket.timestamp > timestamp) {
-      ticketQueue.push(thisTicket);
-    } else {
-      break;
-    }
-  }
-
   // Notify once for each new winning ticket
-  for (const newTicket of ticketQueue) {
+  for (const newTicket of winningTicketRedeemedEvents) {
     const { twitterStatus, discordDescription, image } =
       await getMessageDataForEvent(newTicket);
 
-    await client.post("statuses/update", {
-      status: twitterStatus,
-    });
+    // await client.post("statuses/update", {
+    //   status: twitterStatus,
+    // });
 
     await fetch(process.env.DISCORD_WEBHOOK_URL, {
       method: "POST",
@@ -176,7 +172,7 @@ export const getMessageDataForEvent = async (
 
   try {
     const l1Provider = new ethers.providers.JsonRpcProvider(
-      `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`
+      `${process.env.L1_RPC_URL}`
     );
 
     const ensName = await l1Provider.lookupAddress(event.recipient.id);
