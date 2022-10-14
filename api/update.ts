@@ -117,12 +117,12 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   if (winningTicketRedeemedEvents && winningTicketRedeemedEvents.length == 0) {
     res.status(200).send("None");
   } else {
-    if (winningTicketRedeemedEvents[0].timestamp > timestamp) {
+    if (winningTicketRedeemedEvents[winningTicketRedeemedEvents.length-1].timestamp > timestamp) {
       await db
         .collection("payouts")
         .replaceOne(
           {},
-          { timestamp: winningTicketRedeemedEvents[0].timestamp }
+          { timestamp: winningTicketRedeemedEvents[winningTicketRedeemedEvents.length-1].timestamp }
         );
     }
 
