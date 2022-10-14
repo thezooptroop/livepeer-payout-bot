@@ -5,7 +5,23 @@ import { ethers } from "ethers";
 
 const fetch = require("@vercel/fetch")();
 
-const bad_actors = ['0x525419ff5707190389bfb5c87c375d710f5fcb0e','0xdb22609515433e664e28067c81704d8266098986']
+const bad_actors = [
+  //vires
+  "0x525419ff5707190389bfb5c87c375d710f5fcb0e",
+  "0xbac7744ada4ab1957cbaafef698b3c068beb4fe0",
+  //Karolak
+  "0xdb22609515433e664e28067c81704d8266098986",
+  "0xD93e0A15511935889AeC76f79D54DFf0e27af82e",
+  "0xeA6Eb2033dE0FbECe9445FAe407C596f3fFd81AE",
+  "0x51D191950353BDF1D6361e9264a49BF93F6AbD4A",
+  "0x13364c017b282FB033107b3c0cCbf762332AcEBa",
+  "0x5D98F8d269C94B746A5c3C2946634dCfc75E5E60",
+  "0x75fbf65A3DFE93545C9768f163E59a02Daf08D36",
+  //trancoder.eth
+  "0xdb22609515433e664e28067c81704d8266098986",
+];
+
+const joke_emojis = ["🖕🏾", "🤡", "💩", "🚽", "🤮"];
 
 const pricePerPixel = 0.0000000000000012; // (1200 wei)
 
@@ -225,8 +241,13 @@ export const getMessageDataForEvent = async (
     minutes
   ).toLocaleString()} minutes of video.`;
 
-  if(bad_actors.includes(event.recipient.id))
-  discordDescription= discordDescription+ '🖕🏾🤡';
+  if (bad_actors.includes(event.recipient.id))
+    discordDescription =
+      discordDescription + getNextJokeEmoji() + getNextJokeEmoji();
 
   return { twitterStatus, minutes, image, name, discordDescription };
+};
+
+const getNextJokeEmoji = () => {
+  return joke_emojis[Math.floor(Math.random() * joke_emojis.length)];
 };
