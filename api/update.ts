@@ -4,7 +4,6 @@ import { request, gql } from "graphql-request";
 import { ethers } from "ethers";
 
 const fetch = require("@vercel/fetch")();
-
 const bad_actors = [
   //vires
   "0x525419ff5707190389bfb5c87c375d710f5fcb0e",
@@ -139,7 +138,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: "POST",
         body: JSON.stringify({
-          username: "Willy Wonky",
+          username: `Willy "LP" Wonky`,
           avatar_url:
             "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
           embeds: [
