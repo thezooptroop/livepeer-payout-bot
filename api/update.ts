@@ -20,7 +20,7 @@ const bad_actors = [
   "0xdb22609515433e664e28067c81704d8266098986",
 ];
 
-const joke_emojis = ["🖕🏾", "🤡", "💩", "🚽", "🤮"];
+const joke_emojis = ["🖕🏾", "🤡", "💩", "🚽", "🤮",'🩸','🔪','🤬','🤥','🧌','🤷🏾‍♂️','🙈'];
 
 const pricePerPixel = 0.0000000000000012; // (1200 wei)
 
@@ -140,7 +140,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         body: JSON.stringify({
           username: `Willy "LP" Wonky`,
           avatar_url:
-            "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
+            "https://cdn.discordapp.com/emojis/848761333512142850.webp?size=240&quality=lossless",
           embeds: [
             {
               color: 60296,
