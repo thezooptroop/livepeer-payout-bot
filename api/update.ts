@@ -139,13 +139,13 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: "POST",
         body: JSON.stringify({
-          username: "Golden Ticket Mofo's",
+          username: "Willy Wonky",
           avatar_url:
             "https://user-images.githubusercontent.com/555740/107160745-213a9480-6966-11eb-927f-a53ae12ab219.png",
           embeds: [
             {
               color: 60296,
-              title: "Orchestrator Payout",
+              title: "Golden Ticket Payout",
               description: discordDescription,
               timestamp: new Date(newTicket.timestamp * 1000).toISOString(),
               url: `https://arbiscan.io/tx/${newTicket.transaction.id}`,
