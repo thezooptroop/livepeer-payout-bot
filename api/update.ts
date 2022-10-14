@@ -140,7 +140,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         body: JSON.stringify({
           username: `Willy "LP" Wonky`,
           avatar_url:
-            "https://cdn.discordapp.com/emojis/848761333512142850.webp?size=240&quality=lossless",
+            "https://cdn.discordapp.com/emojis/796874313248014376.gif?size=240&quality=lossless",
           embeds: [
             {
               color: 60296,
