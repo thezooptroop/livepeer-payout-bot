@@ -88,7 +88,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       winningTicketRedeemedEvents(
         where: { timestamp_gt: $lastCheckTime }
         first: 100
-        orderDirection: desc
+        orderDirection: asc
         orderBy: timestamp
       ) {
         timestamp
